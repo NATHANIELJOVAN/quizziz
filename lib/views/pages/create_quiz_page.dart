@@ -1,10 +1,10 @@
 // lib/views/pages/create_quiz_page.dart
 
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import '../../models/quiz.dart';
 import '../../models/question.dart';
-import '../../viewmodels/quiz_viewmodel.dart';
+import '../../services/quiz_manager.dart'; // Akses Service
+import '../../main.dart'; // Import main.dart untuk mengakses quizManager
 
 class CreateQuizPage extends StatefulWidget {
   const CreateQuizPage({Key? key}) : super(key: key);
@@ -88,8 +88,6 @@ class _CreateQuizPageState extends State<CreateQuizPage> {
   }
 
   void _saveQuiz() {
-    final viewModel = Provider.of<QuizViewModel>(context, listen: false);
-
     if (_quizTitleController.text.isEmpty || _currentQuestions.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Judul dan setidaknya satu soal harus ada!')),
@@ -101,7 +99,7 @@ class _CreateQuizPageState extends State<CreateQuizPage> {
       questions: List.from(_currentQuestions),
       timerDuration: _selectedTimerDuration,
     );
-    viewModel.addQuiz(newQuiz);
+    quizManager.addQuiz(newQuiz); // Gunakan Service
 
     _quizTitleController.clear();
     _currentQuestions.clear();

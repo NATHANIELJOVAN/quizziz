@@ -36,7 +36,6 @@ class _CreateQuestionPageState extends State<CreateQuestionPage> {
       _questionType = question.type;
       _correctAnswer = question.correctAnswer;
       if (question.type == 'multiple_choice') {
-        // Hanya isi jika options tersedia dan sesuai batas
         for (int i = 0; i < question.options.length && i < _optionControllers.length; i++) {
           _optionControllers[i].text = question.options[i];
         }

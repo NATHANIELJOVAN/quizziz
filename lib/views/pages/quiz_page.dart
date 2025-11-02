@@ -2,12 +2,12 @@
 
 import 'package:flutter/material.dart';
 import 'dart:async';
-import 'package:provider/provider.dart';
 import '../../models/quiz.dart';
 import '../../models/question.dart';
-import '../../viewmodels/quiz_viewmodel.dart';
+import '../../services/quiz_manager.dart'; // Akses Service
 import '../widgets/result_page.dart';
 import '../widgets/quiz_timer.dart';
+import '../../main.dart'; // Import main.dart untuk mengakses quizManager
 
 class QuizPage extends StatefulWidget {
   final Quiz quiz;
@@ -57,9 +57,8 @@ class _QuizPageState extends State<QuizPage> {
 
   void checkAnswers() async {
     _stopwatch.stop();
-    final viewModel = Provider.of<QuizViewModel>(context, listen: false);
 
-    int correctAnswers = viewModel.calculateScore(widget.quiz, userAnswers);
+    int correctAnswers = quizManager.calculateScore(widget.quiz, userAnswers); // Gunakan Service
     int totalCountableQuestions = widget.quiz.questions.where((q) => q.type != 'essay').length;
 
     for (int i = 0; i < widget.quiz.questions.length; i++) {
@@ -68,7 +67,7 @@ class _QuizPageState extends State<QuizPage> {
       }
     }
 
-    viewModel.addHistory(
+    quizManager.addHistory( // Gunakan Service
       playerName: _playerNameController.text,
       quizTitle: widget.quiz.title,
       score: correctAnswers,

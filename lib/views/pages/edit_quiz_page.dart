@@ -1,11 +1,10 @@
 // lib/views/pages/edit_quiz_page.dart
 
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import '../../models/quiz.dart';
 import '../../models/question.dart';
-import '../../viewmodels/quiz_viewmodel.dart';
 import 'create_question_page.dart';
+import '../../main.dart'; // Import main.dart untuk akses quizManager
 
 class EditQuizPage extends StatefulWidget {
   final Quiz quiz;
@@ -43,6 +42,8 @@ class _EditQuizPageState extends State<EditQuizPage> {
         ),
       ),
     ).then((_) {
+      // Panggil setState di sini karena data kuis diubah di CreateQuestionPage
+      // dan EditQuizPage perlu diperbarui.
       setState(() {});
     });
   }
@@ -65,6 +66,7 @@ class _EditQuizPageState extends State<EditQuizPage> {
         ),
       ),
     ).then((_) {
+      // Panggil setState di sini
       setState(() {});
     });
   }

@@ -1,8 +1,10 @@
-// Ini adalah Service Layer yang menampung data persisten (di memori untuk saat ini)
+// lib/services/quiz_manager.dart
 
-import 'package:flutter/material.dart';
 import '../models/quiz.dart';
+import '../models/question.dart';
+import 'package:flutter/material.dart';
 
+// Kelas ini menggabungkan QuizData dan QuizHistory untuk Service Layer
 class QuizManager {
   final List<Quiz> _quizzes = [];
   final List<Map<String, dynamic>> _history = [];

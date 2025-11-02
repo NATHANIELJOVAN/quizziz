@@ -1,8 +1,8 @@
 // lib/services/quiz_manager.dart
 
 import '../models/quiz.dart';
-import '../models/question.dart';
-import 'package:flutter/material.dart';
+// import '../models/question.dart'; // DIHAPUS - tidak digunakan
+// import 'package:flutter/material.dart'; // DIHAPUS - tidak digunakan
 
 // Kelas ini menggabungkan QuizData dan QuizHistory untuk Service Layer
 class QuizManager {

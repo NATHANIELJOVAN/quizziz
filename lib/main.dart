@@ -1,4 +1,4 @@
-// lib/main.dart test kane nih yang ke 2 ,,
+// lib/main.dart test kane nih yang ke 2 ,
 
 import 'package:flutter/material.dart';
 import 'dart:async';
@@ -20,7 +20,7 @@ import 'views/pages/history_page.dart';
 // Import Views (Widgets)
 import 'views/widgets/quiz_review_page.dart';
 import 'views/widgets/result_page.dart';
-import 'views/widgets/quiz_timer.dart';
+import 'views/widgets/quiz_timer.da
 
 // Variabel Service Layer Global (Pengganti QuizData dan QuizHistory)
 final QuizManager quizManager = QuizManager();

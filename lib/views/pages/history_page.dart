@@ -1,10 +1,8 @@
-// lib/views/pages/history_page.dart
-
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../models/quiz.dart';
 import '../../models/question.dart';
-import '../../main.dart'; // Akses Global Service dan State
+import '../../main.dart';
 import '../widgets/quiz_review_page.dart';
 
 class HistoryPage extends StatelessWidget {
@@ -13,7 +11,7 @@ class HistoryPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (currentUserRole == 'teacher') {
-      return TeacherQuizListForGrading(); // Nama baru untuk daftar Kuis
+      return TeacherQuizListForGrading();
     } else {
       return StudentHistoryPage();
     }
@@ -44,8 +42,6 @@ class StudentHistoryPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // NOTE: Logika filter pencarian dihapus agar lebih sederhana dan konsisten,
-    // jika ingin menambahkan fitur pencarian di sini, harus menggunakan StatefulWidget lagi.
     final allHistory = quizManager.history
         .where((item) => item['studentEmail'] == currentUserEmail)
         .toList();
@@ -200,9 +196,9 @@ class _TeacherQuizListForGradingState extends State<TeacherQuizListForGrading> {
       final aPending = groupedHistory[a]!.any((item) => (item['essayGraded'] == false && quizManager.getQuizByTitle(item['quizTitle'])?.questions.any((q) => q.type == 'essay') == true));
       final bPending = groupedHistory[b]!.any((item) => (item['essayGraded'] == false && quizManager.getQuizByTitle(item['quizTitle'])?.questions.any((q) => q.type == 'essay') == true));
 
-      if (aPending && !bPending) return -1; // A (pending) di atas B (selesai/tidak ada esai)
-      if (!aPending && bPending) return 1;  // B (pending) di atas A
-      return a.compareTo(b); // Urutan judul jika status sama
+      if (aPending && !bPending) return -1;
+      if (!aPending && bPending) return 1;
+      return a.compareTo(b);
     });
 
 
@@ -271,7 +267,7 @@ class _TeacherQuizListForGradingState extends State<TeacherQuizListForGrading> {
                     builder: (context) => TeacherGradingPage(
                       quizTitle: quizTitle,
                       submissions: submissions,
-                      onGradeSubmitted: () => setState(() {}), // Refresh list setelah kembali
+                      onGradeSubmitted: () => setState(() {}),
                     ),
                   ),
                 );
@@ -307,7 +303,7 @@ class TeacherGradingPage extends StatefulWidget {
 class _TeacherGradingPageState extends State<TeacherGradingPage> {
   String _searchQuery = '';
 
-  void _refreshList() { setState(() { widget.onGradeSubmitted(); }); } // Panggil callback untuk refresh list Kuis
+  void _refreshList() { setState(() { widget.onGradeSubmitted(); }); }
 
   void _navigateToGrading(Map<String, dynamic> historyItem, int historyIndex, bool hasEssay, Quiz? originalQuiz) async {
     if (originalQuiz == null) {
@@ -322,7 +318,7 @@ class _TeacherGradingPageState extends State<TeacherGradingPage> {
             historyItem: historyItem,
             originalQuiz: originalQuiz,
             historyIndex: historyIndex,
-            onGradeSubmitted: _refreshList, // Refresh daftar Siswa setelah dinilai
+            onGradeSubmitted: _refreshList,
           ),
         ),
       );
@@ -336,7 +332,7 @@ class _TeacherGradingPageState extends State<TeacherGradingPage> {
         ),
       );
     }
-    _refreshList(); // Refresh list siswa setelah kembali
+    _refreshList();
   }
 
   @override
@@ -359,9 +355,9 @@ class _TeacherGradingPageState extends State<TeacherGradingPage> {
       final aGraded = (a['essayGraded'] as bool?) ?? false;
       final bGraded = (b['essayGraded'] as bool?) ?? false;
 
-      if (!aGraded && bGraded) return -1; // A (belum dinilai) di atas B (sudah dinilai)
-      if (aGraded && !bGraded) return 1;  // B (belum dinilai) di atas A
-      return (a['playerName'] as String).compareTo(b['playerName'] as String); // Urutan nama siswa
+      if (!aGraded && bGraded) return -1;
+      if (aGraded && !bGraded) return 1;  /
+      return (a['playerName'] as String).compareTo(b['playerName'] as String);
     });
 
 
@@ -421,7 +417,7 @@ class _TeacherGradingPageState extends State<TeacherGradingPage> {
           IconData leadingIcon;
           Color iconColor;
           String statusText;
-          Widget trailingWidget; // Widget baru untuk menampilkan nilai atau ikon
+          Widget trailingWidget;
 
           if (!hasEssay) {
             // PG/TF ONLY -> Otomatis selesai dan biru
@@ -482,7 +478,7 @@ class _TeacherGradingPageState extends State<TeacherGradingPage> {
                 'Status: ' + statusText,
                 style: TextStyle(color: hasEssay && !isGradedByTeacher ? Colors.orangeAccent : Colors.white70),
               ),
-              trailing: trailingWidget, // Menggunakan widget baru yang sudah ditentukan
+              trailing: trailingWidget,
               onTap: () {
                 if (realIndex != -1) {
                   _navigateToGrading(historyItem, realIndex, hasEssay, originalQuiz);
@@ -501,7 +497,6 @@ class _TeacherGradingPageState extends State<TeacherGradingPage> {
 
 // =================================================================
 // 4. Sub-View: Halaman Input Nilai Esai (EssayGradingPage)
-// (Tidak ada perubahan di sini, karena fokusnya di TeacherGradingPage)
 // =================================================================
 
 class EssayGradingPage extends StatefulWidget {

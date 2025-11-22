@@ -38,7 +38,7 @@ class QuizReviewPage extends StatelessWidget {
           Card(
             margin: const EdgeInsets.all(16),
             elevation: 4,
-            color: Theme.of(context).cardColor, // Mengikuti tema
+            color: Theme.of(context).cardColor,
             child: Padding(
               padding: const EdgeInsets.all(16.0),
               child: Column(
@@ -96,14 +96,12 @@ class QuizReviewPage extends StatelessWidget {
                 bool isCorrect = false;
 
                 if (isEssay) {
-                  // Cek status dari data essayDetails yang disimpan guru
                   if (essayGraded && essayDetails.containsKey(index.toString())) {
                     isCorrect = essayDetails[index.toString()] == true;
                   } else {
-                    isCorrect = false; // Default jika belum dinilai
+                    isCorrect = false;
                   }
                 } else {
-                  // PG/TF
                   isCorrect = (userAns == question.correctAnswer);
                 }
 
@@ -111,7 +109,7 @@ class QuizReviewPage extends StatelessWidget {
                 IconData icon;
 
                 if (isEssay && !essayGraded) {
-                  // Esai Belum Dinilai: Biru Netral
+                  // Esai Belum Dinilai: Biru
                   borderColor = Colors.blue;
                   icon = Icons.edit_note;
                 } else {
@@ -146,7 +144,6 @@ class QuizReviewPage extends StatelessWidget {
                         const Text("Jawaban Kamu:", style: TextStyle(fontSize: 12, color: Colors.grey)),
                         Text(userAns, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
 
-                        // Tampilkan Kunci (Jika salah dan bukan esai yang belum dinilai)
                         if (!isEssay && !isCorrect)
                           Padding(
                             padding: const EdgeInsets.only(top: 4.0),

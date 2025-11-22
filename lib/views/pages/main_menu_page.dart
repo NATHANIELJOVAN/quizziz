@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'create_quiz_list_page.dart';
 import 'quiz_list_page.dart';
 import 'history_page.dart';
-import '../../main.dart'; // Akses Global State
+import '../../main.dart';
 
 class MainMenuPage extends StatelessWidget {
   const MainMenuPage({Key? key}) : super(key: key);
@@ -45,7 +45,6 @@ class MainMenuPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // [BARU] Logika Format Nama: "Jovan Nathaniel (S)" atau "(T)"
     String roleSuffix = currentUserRole == 'teacher' ? '(T)' : '(S)';
     String displayName = "${currentUserName ?? 'User'} $roleSuffix";
 
@@ -53,7 +52,6 @@ class MainMenuPage extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Menu Utama'),
         actions: [
-          // [LAMA] Logika Logout Original Anda (Tanpa Firebase Auth)
           IconButton(
             icon: const Icon(Icons.logout),
             onPressed: () async {
@@ -83,14 +81,14 @@ class MainMenuPage extends StatelessWidget {
               SizedBox(
                 width: 400,
                 child: Card(
-                  color: const Color(0xFF1E1E1E), // Warna sedikit berbeda untuk info user
+                  color: const Color(0xFF1E1E1E),
                   margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                   child: Padding(
                     padding: const EdgeInsets.all(16.0),
                     child: Column(
                       children: [
                         Text(
-                          displayName, // Tampilkan format Nama (S)/(T)
+                          displayName,
                           style: const TextStyle(
                               fontSize: 22,
                               fontWeight: FontWeight.bold,

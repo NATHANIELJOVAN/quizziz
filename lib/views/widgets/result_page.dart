@@ -24,8 +24,8 @@ class ResultPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // --- LOGIKA STATISTIK ---
-    final int totalAutoQuestions = totalQuestions - totalEssay; // Jumlah soal PG/TF
-    final int wrongAnswers = totalAutoQuestions - score; // Salah murni (bukan esai)
+    final int totalAutoQuestions = totalQuestions - totalEssay;
+    final int wrongAnswers = totalAutoQuestions - score;
 
     // Akurasi sementara (Hanya PG)
     final double accuracy = totalAutoQuestions > 0

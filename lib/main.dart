@@ -93,13 +93,11 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // --- TEMA DARK MODE YANG AMAN (TANPA ERROR CARDTHEME) ---
     final ThemeData darkTheme = ThemeData(
       useMaterial3: true,
       brightness: Brightness.dark,
-      scaffoldBackgroundColor: const Color(0xFF121212), // Background Hitam
+      scaffoldBackgroundColor: const Color(0xFF121212),
 
-      // GANTI DI SINI: Gunakan cardColor langsung, jangan CardTheme() objek
       cardColor: const Color(0xFF1E1E1E),
 
       primaryColor: Colors.blueAccent,
@@ -107,7 +105,7 @@ class MyApp extends StatelessWidget {
       colorScheme: const ColorScheme.dark(
         primary: Colors.blueAccent,
         secondary: Colors.tealAccent,
-        surface: Color(0xFF1E1E1E), // Warna permukaan kartu
+        surface: Color(0xFF1E1E1E),
         onSurface: Colors.white,
       ),
 
@@ -147,20 +145,17 @@ class MyApp extends StatelessWidget {
         ),
       ),
     );
-    // ---------------------------------------------------------
 
     return MaterialApp(
       title: 'Quiz Creator & Solver',
       theme: darkTheme,
-      themeMode: ThemeMode.dark, // Paksa mode gelap
+      themeMode: ThemeMode.dark,
       home: currentUserRole == null ? const LoginPage() : const MainMenuPage(),
     );
   }
 }
 
-// =================================================================
-// VIEWS: Login Page
-// =================================================================
+
 
 class LoginPage extends StatefulWidget {
   const LoginPage({Key? key}) : super(key: key);
@@ -225,7 +220,6 @@ class _LoginPageState extends State<LoginPage> {
               const SizedBox(height: 40),
 
               Card(
-                // Card akan otomatis mengambil warna dari cardColor di tema
                 child: Padding(
                   padding: const EdgeInsets.all(24.0),
                   child: Column(
@@ -278,4 +272,3 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 }
-//test

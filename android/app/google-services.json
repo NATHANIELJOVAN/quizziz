@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "854157792892",
+    "project_id": "quiz-cbdaa",
+    "storage_bucket": "quiz-cbdaa.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:854157792892:android:b191e65a2b2e3f30b51bf9",
+        "android_client_info": {
+          "package_name": "com.example.quizziz"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD2LdJpokwNj_xrUhyGRCr-D5WsGkE6bsI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

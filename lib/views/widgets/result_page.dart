@@ -1,34 +1,19 @@
-// lib/views/widgets/result_page.dart
-
 import 'package:flutter/material.dart';
 import 'package:pie_chart/pie_chart.dart';
 
 class ResultPage extends StatelessWidget {
   final int score;
   final int totalQuestions;
+  final int totalEssay;
   final int timeSpent;
 
   const ResultPage({
     Key? key,
     required this.score,
     required this.totalQuestions,
+    required this.totalEssay,
     required this.timeSpent,
   }) : super(key: key);
-
-  double get accuracy => (totalQuestions > 0) ? (score / totalQuestions) * 100 : 0.0;
-  int get wrongAnswers => totalQuestions - score;
-
-  String getEvaluation() {
-    if (accuracy >= 90) {
-      return "Luar biasa! Kamu benar-benar menguasai materi 🎓🔥";
-    } else if (accuracy >= 70) {
-      return "Bagus! Masih ada sedikit ruang untuk berkembang 💪";
-    } else if (accuracy >= 50) {
-      return "Cukup, tapi kamu bisa belajar lebih giat lagi! 📚";
-    } else {
-      return "Jangan menyerah! Ini kesempatan buat belajar lebih dalam 💡";
-    }
-  }
 
   String getTimeString() {
     int minutes = timeSpent ~/ 60;
@@ -38,19 +23,37 @@ class ResultPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // --- LOGIKA STATISTIK ---
+    final int totalAutoQuestions = totalQuestions - totalEssay; // Jumlah soal PG/TF
+    final int wrongAnswers = totalAutoQuestions - score; // Salah murni (bukan esai)
+
+    // Akurasi sementara (Hanya PG)
+    final double accuracy = totalAutoQuestions > 0
+        ? (score / totalAutoQuestions) * 100
+        : 0;
+
+    // Data Grafik
     Map<String, double> dataMap = {
       "Benar": score.toDouble(),
       "Salah": wrongAnswers.toDouble(),
     };
 
-    final colorList = <Color>[
-      Colors.greenAccent,
-      Colors.redAccent,
+    if (totalEssay > 0) {
+      dataMap["Menunggu (Esai)"] = totalEssay.toDouble();
+    }
+
+    // Warna Grafik
+    List<Color> colorList = [
+      Colors.green,
+      Colors.red,
     ];
+    if (totalEssay > 0) {
+      colorList.add(Colors.orange);
+    }
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Statistik & Evaluasi"),
+        title: const Text("Hasil Sementara"),
         centerTitle: true,
         automaticallyImplyLeading: false,
       ),
@@ -61,87 +64,103 @@ class ResultPage extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               const Text(
-                "Hasil Kuis Kamu 🎯",
+                "Kuis Selesai! 🚀",
                 style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 10),
 
-              // Grafik Donat
-              PieChart(
-                dataMap: dataMap,
-                chartRadius: 160,
-                colorList: colorList,
-                chartType: ChartType.ring,
-                ringStrokeWidth: 24,
-                centerText: "${accuracy.toStringAsFixed(1)}%",
-                chartValuesOptions: const ChartValuesOptions(
-                  showChartValuesInPercentage: true,
-                  showChartValuesOutside: false,
+              if (totalEssay > 0)
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.orange.shade50,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.orange.shade200),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(Icons.info_outline, color: Colors.orange),
+                      const SizedBox(width: 8),
+                      Text("Nilai Esai ($totalEssay soal) menunggu guru.",
+                          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.orange.shade900)),
+                    ],
+                  ),
+                ),
+
+              const SizedBox(height: 30),
+
+              // --- PIE CHART ---
+              SizedBox(
+                height: 220,
+                child: PieChart(
+                  dataMap: dataMap,
+                  chartRadius: 160,
+                  colorList: colorList,
+                  chartType: ChartType.ring,
+                  ringStrokeWidth: 24,
+                  centerText: totalEssay > 0 ? "Pending" : "${accuracy.toStringAsFixed(0)}%",
+                  legendOptions: const LegendOptions(
+                    showLegendsInRow: false,
+                    legendPosition: LegendPosition.bottom,
+                    showLegends: true,
+                  ),
+                  chartValuesOptions: const ChartValuesOptions(
+                    showChartValuesInPercentage: false,
+                    showChartValues: true,
+                    decimalPlaces: 0,
+                  ),
                 ),
               ),
               const SizedBox(height: 30),
 
-              // Detail Statistik
+              // --- DETAIL KARTU ---
               Card(
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                elevation: 4,
+                elevation: 3,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
                 child: Padding(
-                  padding: const EdgeInsets.all(16.0),
+                  padding: const EdgeInsets.all(20.0),
                   child: Column(
                     children: [
-                      Text("Total Soal: $totalQuestions"),
-                      Text("Jawaban Benar: $score"),
-                      Text("Jawaban Salah: $wrongAnswers"),
-                      Text("Akurasi: ${accuracy.toStringAsFixed(1)}%"),
-                      Text("Waktu yang dihabiskan: ${getTimeString()}"),
+                      _rowDetail("Total Soal", "$totalQuestions"),
+                      const Divider(),
+                      _rowDetail("Benar (PG/TF)", "$score", color: Colors.green),
+                      _rowDetail("Salah (PG/TF)", "$wrongAnswers", color: Colors.red),
+                      if (totalEssay > 0)
+                        _rowDetail("Esai (Menunggu)", "$totalEssay", color: Colors.orange),
+                      const Divider(),
+                      _rowDetail("Waktu", getTimeString()),
                     ],
                   ),
                 ),
               ),
 
-              const SizedBox(height: 25),
-
-              // Evaluasi
-              Container(
-                decoration: BoxDecoration(
-                  color: Colors.blueAccent.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                padding: const EdgeInsets.all(16),
-                child: Text(
-                  getEvaluation(),
-                  style: const TextStyle(fontSize: 18),
-                  textAlign: TextAlign.center,
-                ),
-              ),
-
               const SizedBox(height: 30),
-
-              // Tombol Aksi
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  ElevatedButton.icon(
-                    onPressed: () {
-                      Navigator.pop(context, "retry");
-                    },
-                    icon: const Icon(Icons.refresh),
-                    label: const Text("Coba Lagi"),
-                  ),
-                  ElevatedButton.icon(
-                    onPressed: () {
-                      Navigator.pop(context, "home");
-                    },
-                    icon: const Icon(Icons.home),
-                    label: const Text("Menu Utama"),
-                  ),
-                ],
+              ElevatedButton(
+                onPressed: () => Navigator.pop(context, "home"),
+                style: ElevatedButton.styleFrom(
+                  minimumSize: const Size(double.infinity, 50),
+                  backgroundColor: Colors.blue,
+                  foregroundColor: Colors.white,
+                ),
+                child: const Text("KEMBALI KE MENU UTAMA"),
               ),
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _rowDetail(String label, String value, {Color? color}) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(label, style: const TextStyle(fontSize: 16)),
+          Text(value, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: color)),
+        ],
       ),
     );
   }

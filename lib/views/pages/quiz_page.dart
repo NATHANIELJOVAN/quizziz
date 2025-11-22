@@ -1,13 +1,10 @@
-// lib/views/pages/quiz_page.dart
-
 import 'package:flutter/material.dart';
 import 'dart:async';
 import '../../models/quiz.dart';
 import '../../models/question.dart';
-import '../../services/quiz_manager.dart'; // Akses Service
 import '../widgets/result_page.dart';
 import '../widgets/quiz_timer.dart';
-import '../../main.dart'; // Import main.dart untuk mengakses quizManager
+import '../../main.dart';
 
 class QuizPage extends StatefulWidget {
   final Quiz quiz;
@@ -25,15 +22,31 @@ class _QuizPageState extends State<QuizPage> {
   final _playerNameController = TextEditingController();
   final Map<int, TextEditingController> _essayControllers = {};
 
+  int _remainingTimeSeconds = 0;
+  bool _quizCompleted = false;
+
   @override
   void initState() {
     super.initState();
     _stopwatch = Stopwatch();
+    _playerNameController.text = currentUserName ?? '';
+    _remainingTimeSeconds = widget.quiz.timerDuration;
+
     for (int i = 0; i < widget.quiz.questions.length; i++) {
       if (widget.quiz.questions[i].type == 'essay') {
         _essayControllers[i] = TextEditingController();
       }
     }
+  }
+
+  Future<bool> _onWillPop() async {
+    if (currentUserRole != 'student' || _quizCompleted || !quizStarted) {
+      return true;
+    }
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Anda tidak bisa keluar saat kuis berlangsung!')),
+    );
+    return false;
   }
 
   void _startQuiz() {
@@ -50,7 +63,7 @@ class _QuizPageState extends State<QuizPage> {
   }
 
   void _onTimeUp() {
-    if (quizStarted) {
+    if (quizStarted && !_quizCompleted) {
       checkAnswers();
     }
   }
@@ -58,37 +71,49 @@ class _QuizPageState extends State<QuizPage> {
   void checkAnswers() async {
     _stopwatch.stop();
 
-    int correctAnswers = quizManager.calculateScore(widget.quiz, userAnswers); // Gunakan Service
-    int totalCountableQuestions = widget.quiz.questions.where((q) => q.type != 'essay').length;
+    int correctAnswers = quizManager.calculateScore(widget.quiz, userAnswers);
+    int totalAllQuestions = widget.quiz.questions.length;
 
     for (int i = 0; i < widget.quiz.questions.length; i++) {
       if (widget.quiz.questions[i].type == 'essay') {
-        userEssayAnswers[i] = _essayControllers[i]?.text ?? '';
+        String answerText = _essayControllers[i]?.text.trim() ?? '';
+        if (answerText.isEmpty) answerText = "Tidak Dijawab";
+        userEssayAnswers[i] = answerText;
       }
     }
 
-    quizManager.addHistory( // Gunakan Service
+    quizManager.addHistory(
       playerName: _playerNameController.text,
+      studentEmail: currentUserEmail,
       quizTitle: widget.quiz.title,
       score: correctAnswers,
-      totalQuestions: totalCountableQuestions,
+      totalQuestions: totalAllQuestions,
       userAnswers: userAnswers,
       userEssayAnswers: userEssayAnswers,
     );
 
-    final result = await showGeneralDialog(
-      context: context,
-      pageBuilder: (context, anim1, anim2) {
-        return ResultPage(
+    setState(() {
+      _quizCompleted = true;
+    });
+
+    await saveAppState();
+
+    if (!mounted) return;
+
+    int totalEssayCount = widget.quiz.questions.where((q) => q.type == 'essay').length;
+
+    final result = await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => ResultPage(
           score: correctAnswers,
-          totalQuestions: totalCountableQuestions,
+          totalQuestions: totalAllQuestions,
+          totalEssay: totalEssayCount,
           timeSpent: _stopwatch.elapsed.inSeconds,
-        );
-      },
-      barrierDismissible: false,
-      barrierLabel: 'Result',
-      transitionDuration: const Duration(milliseconds: 400),
+        ),
+      ),
     );
+
+    if (!mounted) return;
 
     if (result == "retry") {
       setState(() {
@@ -97,6 +122,8 @@ class _QuizPageState extends State<QuizPage> {
         _essayControllers.forEach((_, controller) => controller.clear());
         _stopwatch.reset();
         _stopwatch.start();
+        _quizCompleted = false;
+        _remainingTimeSeconds = widget.quiz.timerDuration;
       });
     } else if (result == "home") {
       Navigator.of(context).popUntil((route) => route.isFirst);
@@ -113,69 +140,86 @@ class _QuizPageState extends State<QuizPage> {
 
   @override
   Widget build(BuildContext context) {
-    if (!quizStarted) {
-      return Scaffold(
-        appBar: AppBar(title: Text(widget.quiz.title)),
-        body: Center(
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Text('Masukkan nama Anda untuk memulai kuis:', style: TextStyle(fontSize: 16)),
-                const SizedBox(height: 10),
-                TextField(
-                  controller: _playerNameController,
-                  decoration: const InputDecoration(labelText: 'Nama Anda', border: OutlineInputBorder()),
-                ),
-                const SizedBox(height: 20),
-                ElevatedButton(
-                  onPressed: _startQuiz,
-                  child: const Text('Mulai Kuis'),
-                ),
-              ],
-            ),
-          ),
-        ),
-      );
-    }
+    bool canPop = !quizStarted || _quizCompleted || currentUserRole != 'student';
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text("Jawab Soal: ${widget.quiz.title}"),
-        actions: [
-          if (widget.quiz.timerDuration > 0)
-            Padding(
-              padding: const EdgeInsets.only(right: 16.0),
-              child: QuizTimer(
-                durationInSeconds: widget.quiz.timerDuration,
-                onTimeUp: _onTimeUp,
+    return PopScope(
+      canPop: canPop,
+      onPopInvoked: (didPop) async {
+        if (!didPop) {
+          _onWillPop();
+        }
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(quizStarted ? "Jawab Soal: ${widget.quiz.title}" : widget.quiz.title),
+          automaticallyImplyLeading: canPop,
+          actions: [
+            if (quizStarted && widget.quiz.timerDuration > 0 && !_quizCompleted)
+              Padding(
+                padding: const EdgeInsets.only(right: 16.0),
+                child: QuizTimer(
+                  durationInSeconds: _remainingTimeSeconds,
+                  onTimeUp: _onTimeUp,
+                ),
               ),
-            ),
-        ],
+          ],
+        ),
+        body: !quizStarted ? _buildStartScreen() : _buildQuizContent(),
       ),
-      body: SingleChildScrollView(
+    );
+  }
+
+  Widget _buildStartScreen() {
+    return Center(
+      child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            ...widget.quiz.questions.asMap().entries.map((entry) {
-              final index = entry.key;
-              final question = entry.value;
-              if (question.type == 'multiple_choice') {
-                return buildMultipleChoiceQuestion(question, index);
-              } else if (question.type == 'true_false') {
-                return buildTrueFalseQuestion(question, index);
-              } else {
-                return buildEssayQuestion(question, index);
-              }
-            }).toList(),
+            const Text('Masukkan nama Anda untuk memulai kuis:', style: TextStyle(fontSize: 16)),
+            const SizedBox(height: 10),
+            TextField(
+              controller: _playerNameController,
+              decoration: const InputDecoration(
+                labelText: 'Nama Anda',
+                border: OutlineInputBorder(),
+                hintText: 'Silakan ketik nama lengkap',
+              ),
+              enabled: true,
+            ),
             const SizedBox(height: 20),
             ElevatedButton(
-              onPressed: _stopwatch.isRunning ? checkAnswers : null,
-              child: const Text("Selesai"),
+              onPressed: _startQuiz,
+              child: const Text('Mulai Kuis'),
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildQuizContent() {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        children: [
+          ...widget.quiz.questions.asMap().entries.map((entry) {
+            final index = entry.key;
+            final question = entry.value;
+            if (question.type == 'multiple_choice') {
+              return buildMultipleChoiceQuestion(question, index);
+            } else if (question.type == 'true_false') {
+              return buildTrueFalseQuestion(question, index);
+            } else {
+              return buildEssayQuestion(question, index);
+            }
+          }).toList(),
+          const SizedBox(height: 20),
+          ElevatedButton(
+            onPressed: !_quizCompleted ? checkAnswers : null,
+            child: const Text("Selesai"),
+          ),
+        ],
       ),
     );
   }

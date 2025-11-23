@@ -2,13 +2,11 @@ import 'package:flutter/material.dart';
 import '../models/quiz.dart';
 import '../services/quiz_manager.dart';
 
-// Gunakan MVVM Pattern: Menggabungkan state management dan logic
 class QuizViewModel extends ChangeNotifier {
   final QuizManager _manager;
 
   QuizViewModel(this._manager);
 
-  // Getter yang diekspos ke View
   List<Quiz> get quizzes => _manager.quizzes;
   List<Map<String, dynamic>> get history => _manager.history;
 

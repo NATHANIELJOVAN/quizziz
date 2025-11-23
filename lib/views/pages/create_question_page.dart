@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../models/quiz.dart';
 import '../../models/question.dart';
-//
+
 class CreateQuestionPage extends StatefulWidget {
   final Quiz quiz;
   final int questionIndex;
@@ -20,7 +20,7 @@ class CreateQuestionPage extends StatefulWidget {
 
 class _CreateQuestionPageState extends State<CreateQuestionPage> {
   final _questionController = TextEditingController();
-  final List<TextEditingController> optionControllers = List.generate(4, () => TextEditingController());
+  final List<TextEditingController> _optionControllers = List.generate(4, (_) => TextEditingController());
   String? _correctAnswer;
   String _questionType = 'multiple_choice';
 

@@ -1,12 +1,10 @@
-// lib/views/pages/create_question_page.dart
-//kane
 import 'package:flutter/material.dart';
 import '../../models/quiz.dart';
 import '../../models/question.dart';
 
 class CreateQuestionPage extends StatefulWidget {
   final Quiz quiz;
-  final int questionIndex; // -1 untuk pertanyaan baru, >=0 untuk edit
+  final int questionIndex;
   final Question? questionToEdit;
 
   const CreateQuestionPage({
@@ -22,14 +20,13 @@ class CreateQuestionPage extends StatefulWidget {
 
 class _CreateQuestionPageState extends State<CreateQuestionPage> {
   final _questionController = TextEditingController();
-  final List<TextEditingController> _optionControllers = List.generate(4, (_) => TextEditingController());
+  final List<TextEditingController> optionControllers = List.generate(4, () => TextEditingController());
   String? _correctAnswer;
   String _questionType = 'multiple_choice';
 
   @override
   void initState() {
     super.initState();
-    // Jika mode edit, isi formulir dengan data yang ada
     if (widget.questionToEdit != null) {
       final question = widget.questionToEdit!;
       _questionController.text = question.questionText;
@@ -81,7 +78,7 @@ class _CreateQuestionPageState extends State<CreateQuestionPage> {
       } else {
         widget.quiz.questions[widget.questionIndex] = newQuestion;
       }
-    } else { // essay
+    } else {
       if (_questionController.text.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Teks pertanyaan harus diisi!')),

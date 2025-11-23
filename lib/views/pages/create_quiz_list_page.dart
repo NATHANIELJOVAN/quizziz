@@ -1,201 +1,149 @@
+// lib/views/pages/create_quiz_list_page.dart
+
 import 'package:flutter/material.dart';
 import '../../models/quiz.dart';
-import '../../models/question.dart';
+import '../../services/quiz_manager.dart'; // Akses Service
+import 'create_quiz_page.dart';
+import 'edit_quiz_page.dart';
 
-class CreateQuestionPage extends StatefulWidget {
-  final Quiz quiz;
-  final int questionIndex;
-  final Question? questionToEdit;
+// Akses instance global quizManager (didefinisikan di main.dart)
+// Hapus final QuizManager manager = QuizManager(); jika sudah ada di main.dart
+// Kita harus menggunakan nama variabel yang sama dengan yang didefinisikan di main.dart
+// Saya asumsikan nama variabel global di main.dart adalah quizManager
+import '../../main.dart'; // Import main.dart untuk mengakses quizManager
 
-  const CreateQuestionPage({
-    Key? key,
-    required this.quiz,
-    required this.questionIndex,
-    this.questionToEdit,
-  }) : super(key: key);
+class CreateQuizListPage extends StatefulWidget {
+  const CreateQuizListPage({Key? key}) : super(key: key);
 
   @override
-  State<CreateQuestionPage> createState() => _CreateQuestionPageState();
+  State<CreateQuizListPage> createState() => _CreateQuizListPageState();
 }
 
-class _CreateQuestionPageState extends State<CreateQuestionPage> {
-  final _questionController = TextEditingController();
-  final List<TextEditingController> optionControllers = List.generate(4, () => TextEditingController());
-  String? _correctAnswer;
-  String _questionType = 'multiple_choice';
-
-  @override
-  void initState() {
-    super.initState();
-    if (widget.questionToEdit != null) {
-      final question = widget.questionToEdit!;
-      _questionController.text = question.questionText;
-      _questionType = question.type;
-      _correctAnswer = question.correctAnswer;
-      if (question.type == 'multiple_choice') {
-        for (int i = 0; i < question.options.length && i < _optionControllers.length; i++) {
-          _optionControllers[i].text = question.options[i];
-        }
-      }
-    }
+class _CreateQuizListPageState extends State<CreateQuizListPage> {
+  void _refreshQuizList() {
+    setState(() {});
   }
 
-  void _saveQuestion() {
-    if (_questionType == 'multiple_choice') {
-      if (_questionController.text.isEmpty || _correctAnswer == null || _optionControllers.any((c) => c.text.isEmpty)) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Semua field harus diisi!')),
-        );
-        return;
-      }
-      List<String> options = _optionControllers.map((c) => c.text).toList();
-      final newQuestion = Question(
-        questionText: _questionController.text,
-        options: options,
-        correctAnswer: _correctAnswer!,
-        type: _questionType,
-      );
-      if (widget.questionIndex == -1) {
-        widget.quiz.questions.add(newQuestion);
-      } else {
-        widget.quiz.questions[widget.questionIndex] = newQuestion;
-      }
-    } else if (_questionType == 'true_false') {
-      if (_questionController.text.isEmpty || _correctAnswer == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Teks pertanyaan dan jawaban harus diisi!')),
-        );
-        return;
-      }
-      final newQuestion = Question(
-        questionText: _questionController.text,
-        options: ['True', 'False'],
-        correctAnswer: _correctAnswer!,
-        type: 'true_false',
-      );
-      if (widget.questionIndex == -1) {
-        widget.quiz.questions.add(newQuestion);
-      } else {
-        widget.quiz.questions[widget.questionIndex] = newQuestion;
-      }
-    } else {
-      if (_questionController.text.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Teks pertanyaan harus diisi!')),
-        );
-        return;
-      }
-      final newQuestion = Question(
-        questionText: _questionController.text,
-        options: [],
-        type: 'essay',
-      );
-      if (widget.questionIndex == -1) {
-        widget.quiz.questions.add(newQuestion);
-      } else {
-        widget.quiz.questions[widget.questionIndex] = newQuestion;
-      }
-    }
+  void _showRenameDialog(BuildContext context, int index, Quiz quiz) {
+    final TextEditingController _renameController = TextEditingController(text: quiz.title);
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Perubahan berhasil disimpan!')),
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Ganti Nama Kuis'),
+          content: TextField(
+            controller: _renameController,
+            decoration: const InputDecoration(hintText: 'Masukkan judul baru'),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Batal'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                if (_renameController.text.isNotEmpty) {
+                  setState(() {
+                    quizManager.quizzes[index].title = _renameController.text;
+                  });
+                  Navigator.of(context).pop();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Judul kuis berhasil diubah!')),
+                  );
+                }
+              },
+              child: const Text('Simpan'),
+            ),
+          ],
+        );
+      },
     );
-    Navigator.of(context).pop();
   }
 
-  @override
-  void dispose() {
-    _questionController.dispose();
-    for (var controller in _optionControllers) {
-      controller.dispose();
-    }
-    super.dispose();
+  void _deleteQuiz(int index) {
+    setState(() {
+      quizManager.quizzes.removeAt(index);
+    });
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Kuis berhasil dihapus!')),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.questionToEdit == null ? 'Tambah Pertanyaan' : 'Edit Pertanyaan'),
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            DropdownButton<String>(
-              value: _questionType,
-              onChanged: (String? newValue) {
-                setState(() {
-                  _questionType = newValue!;
-                  _correctAnswer = null;
-                });
+    final quizzes = quizManager.quizzes; // Akses dari global Service
+
+    if (quizzes.isEmpty) {
+      return Scaffold(
+        appBar: AppBar(
+          title: const Text('Daftar Kuis Dibuat'),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.add),
+              onPressed: () async {
+                await Navigator.of(context).push(
+                  MaterialPageRoute(builder: (context) => const CreateQuizPage()),
+                );
+                _refreshQuizList();
               },
-              items: const <String>['multiple_choice', 'true_false', 'essay']
-                  .map<DropdownMenuItem<String>>((String value) {
-                return DropdownMenuItem<String>(
-                  value: value,
-                  child: Text(value == 'multiple_choice' ? 'Pilihan Ganda' : value == 'true_false' ? 'True/False' : 'Esai'),
-                );
-              }).toList(),
-            ),
-            const SizedBox(height: 20),
-            TextField(
-              controller: _questionController,
-              decoration: const InputDecoration(labelText: 'Teks Pertanyaan'),
-            ),
-            if (_questionType == 'multiple_choice') ...[
-              ..._optionControllers.asMap().entries.map((entry) {
-                int index = entry.key;
-                TextEditingController controller = entry.value;
-                return ListTile(
-                  title: TextField(
-                    controller: controller,
-                    decoration: InputDecoration(labelText: 'Opsi ${String.fromCharCode(65 + index)}'),
-                  ),
-                  leading: Radio<String>(
-                    value: controller.text,
-                    groupValue: _correctAnswer,
-                    onChanged: (String? value) {
-                      setState(() {
-                        _correctAnswer = value;
-                      });
-                    },
-                  ),
-                );
-              }).toList(),
-            ] else if (_questionType == 'true_false') ...[
-              ListTile(
-                title: const Text('True'),
-                leading: Radio<String>(
-                  value: 'True',
-                  groupValue: _correctAnswer,
-                  onChanged: (String? value) {
-                    setState(() {
-                      _correctAnswer = value;
-                    });
-                  },
-                ),
-              ),
-              ListTile(
-                title: const Text('False'),
-                leading: Radio<String>(
-                  value: 'False',
-                  groupValue: _correctAnswer,
-                  onChanged: (String? value) {
-                    setState(() {
-                      _correctAnswer = value;
-                    });
-                  },
-                ),
-              ),
-            ],
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: _saveQuestion,
-              child: const Text('Simpan Perubahan'),
             ),
           ],
         ),
+        body: const Center(
+          child: Text('Belum ada kuis yang dibuat. Klik + untuk memulai.'),
+        ),
+      );
+    }
+
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Daftar Kuis Dibuat'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.add),
+            onPressed: () async {
+              await Navigator.of(context).push(
+                MaterialPageRoute(builder: (context) => const CreateQuizPage()),
+              );
+              _refreshQuizList();
+            },
+          ),
+        ],
+      ),
+      body: ListView.builder(
+        itemCount: quizzes.length,
+        itemBuilder: (context, index) {
+          final quiz = quizzes[index];
+          return ListTile(
+            title: Text(quiz.title),
+            subtitle: Text('${quiz.questions.length} soal'),
+            onTap: () {
+              // Navigasi ke halaman EditQuizPage saat di-tap
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => EditQuizPage(
+                    quiz: quiz,
+                    quizIndex: index,
+                  ),
+                ),
+              ).then((_) => _refreshQuizList());
+            },
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.edit, color: Colors.blue),
+                  onPressed: () => _showRenameDialog(context, index, quiz),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.delete, color: Colors.red),
+                  onPressed: () => _deleteQuiz(index),
+                ),
+              ],
+            ),
+          );
+        },
       ),
     );
   }

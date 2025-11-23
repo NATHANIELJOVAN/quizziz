@@ -1,5 +1,3 @@
-// lib/views/widgets/quiz_timer.dart
-
 import 'package:flutter/material.dart';
 import 'dart:async';
 

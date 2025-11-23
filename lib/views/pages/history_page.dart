@@ -356,7 +356,7 @@ class _TeacherGradingPageState extends State<TeacherGradingPage> {
       final bGraded = (b['essayGraded'] as bool?) ?? false;
 
       if (!aGraded && bGraded) return -1;
-      if (aGraded && !bGraded) return 1;  /
+      if (aGraded && !bGraded) return 1;
       return (a['playerName'] as String).compareTo(b['playerName'] as String);
     });
 

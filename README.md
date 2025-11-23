@@ -53,6 +53,5 @@ Aplikasi ini menggunakan sistem **Role-Based Access Control**.
 
 1. **Clone Repository**
    ```bash
-   git clone [https://github.com/username-anda/quiz-app-flutter.git](https://github.com/username-anda/quiz-app-flutter.git)
-   cd quiz-app-flutter
+   git clone [https://github.com/NATHANIELJOVAN/quizziz.git]
    

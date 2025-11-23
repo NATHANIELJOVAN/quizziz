@@ -12,4 +12,18 @@ class Question {
     this.correctAnswer,
     this.type = 'multiple_choice',
   });
+
+  Map<String, dynamic> toJson() => {
+    'questionText': questionText,
+    'options': options,
+    'correctAnswer': correctAnswer,
+    'type': type,
+  };
+
+  factory Question.fromJson(Map<String, dynamic> json) => Question(
+    questionText: json['questionText'] as String,
+    options: List<String>.from(json['options'] as List),
+    correctAnswer: json['correctAnswer'] as String?,
+    type: json['type'] as String,
+  );
 }
